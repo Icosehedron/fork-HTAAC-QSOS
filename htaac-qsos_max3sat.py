@@ -3,6 +3,7 @@ import torch
 import itertools
 import os
 import matplotlib.pyplot as plt
+import sys
 
 
 torch.manual_seed(0) # will make the initialization deterministic (same random every time), comment out for random random
@@ -27,7 +28,6 @@ ncontral = 5 # number of layers in core, not relevant for matrices so don't worr
 gate_rep = 100 # how many time to repeat the gate patern: Rotation Y, CZ-even, Rotation Y, CZ-odd, for more info please see below. You can play with this.
 
 ### choose your graph!
-data_set = 'skew' # name for saving files
 name = './problem/' # graph name to load from file
 nqubits = 5 # number of qubits. Depends on nterms
 nterms =  21 # number of variables in the problem instance. We can solve 2**nqubits variables or fewer, so nterms < 2**nqubits
@@ -40,7 +40,6 @@ reg = 10.0 # regularizes the strength of population balancing term. Bigger makes
 ### build trivial input state as a Matrix Product State
 state = tlq.spins_to_tt_state([0 for i in range(nqubits)], device=device, dtype=dtype)
 state = tlq.qubits_contract(state, ncontraq)
-
 
 ### build the Pauli operators for the constraints
 pauli_z = torch.tensor([[1,0],[0,-1]]).to(device)
@@ -77,8 +76,8 @@ for i in range(1,3):
                 op = torch.kron(op, iden)
         pauli_obs.append(op)
 nconstraints = len(pauli_obs)
-coeff = coeff_base*alpha/(nconstraints)
-pauli_obs = pauli_obs[:1]
+coeff = coeff_base*alpha/(nconstraints) # this is the coefficient that we multiply the constraint loss by. It is a function of the number of constraints and the unitary phase alpha
+#pauli_obs = pauli_obs[:1] # Removing this line improves the algorithm
 
 ### V is generator of the population balancing unitary U2. This is the matrix that helps the approximate constraints stored in pauli_obs work better (sometimes they need some help)
 vertices1 = torch.load(name+'v1.pt').to(torch.int64).to(device)
@@ -131,7 +130,7 @@ for rep in range(reps):
         ### and then we square it to be <psi|Z0I1|psi>**2, so that we can add it to punish the loss function as coeff*<psi|Z0I1|psi>**2. The goal of this is to push us towards <psi|Z0I1|psi> = 0.
         constraints = torch.zeros((len(pauli_obs),)).to(device)
         for i in range(len(pauli_obs)):
-            constraints[i] = torch.real(torch.matmul(torch.transpose(output_state, 0, 1), torch.matmul(pauli_obs[i], output_state)))
+            constraints[i] = torch.real(torch.matmul(torch.transpose(output_state, 0, 1), torch.matmul(pauli_obs[i], output_state))) # Why do we use only the real part here? Answer: It's the expectation of a Hermitian operator, so it's real
         constraints = torch.sum(constraints**2)
         
         ### loss from the objective function and population balancing unitaries that we built above
@@ -187,20 +186,24 @@ for rep in range(reps):
     plt.savefig('./saved_figures/' + instance + '/' + str(coeff_base) + '_' + str(reg) + '/loss_over_epochs')
     plt.clf() 
 
+    all_rounded_sol = [elem.item() for elem in all_rounded_sol]
+
     plt.plot(range(nepochs), all_rounded_sol)
     plt.ylabel('HTAACQSOS')
     plt.xlabel('Epoch')
     plt.title('Rounded HTAAC-QSOS Solution')
-    plt.scatter(all_rounded_sol.index(max(all_rounded_sol)), max(all_rounded_sol), label = 'max: ' + str(max(all_rounded_sol).item()), color = 'red')  
+    plt.scatter(all_rounded_sol.index(max(all_rounded_sol)), max(all_rounded_sol), label = 'max: ' + str(max(all_rounded_sol)), color = 'red')  
     plt.legend()
     plt.savefig('./saved_figures/' + instance + '/' + str(coeff_base) + '_' + str(reg) + '/rounded_sol_over_epochs')
     plt.clf()
+
+    all_unrounded_sol = [elem.item() for elem in all_unrounded_sol]
 
     plt.plot(range(nepochs), all_unrounded_sol)
     plt.ylabel('HTAACQSOS')
     plt.xlabel('Epoch')
     plt.title('Unrounded HTAAC-QSOS Solution')
-    plt.scatter(all_unrounded_sol.index(max(all_unrounded_sol)), max(all_unrounded_sol), label = 'max: ' + str(max(all_unrounded_sol).item()), color = 'red')  
+    plt.scatter(all_unrounded_sol.index(max(all_unrounded_sol)), max(all_unrounded_sol), label = 'max: ' + str(max(all_unrounded_sol)), color = 'red')  
     plt.legend()
     plt.savefig('./saved_figures/' + instance + '/' + str(coeff_base) + '_' + str(reg) + '/unrounded_sol_over_epochs')
     plt.clf()

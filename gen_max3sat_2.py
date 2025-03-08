@@ -80,9 +80,7 @@ def generate_W_mat(max3sat):
             a[i][j] += 1
             a[i][k] += 1
             a[j][k] += 1
-            b1_tilde[0][i] += 1
-            b2_tilde[j][k] += 1
-            add_to_B()
+            b_tilde[j][(n+1)*i+k] += 1
         elif i_neg < 0 and j_neg > 0 and k_neg > 0:
             a[0][i] += 1
             b[0][j] += 1
@@ -90,9 +88,7 @@ def generate_W_mat(max3sat):
             b[i][j] += 1
             b[i][k] += 1
             a[j][k] += 1
-            a1_tilde[0][i] += 1
-            a2_tilde[j][k] += 1
-            add_to_A()
+            a_tilde[j][(n+1)*i+k] += 1
         elif i_neg > 0 and j_neg < 0 and k_neg > 0:
             b[0][i] += 1
             a[0][j] += 1
@@ -100,9 +96,7 @@ def generate_W_mat(max3sat):
             b[i][j] += 1
             a[i][k] += 1
             b[j][k] += 1
-            a1_tilde[0][i] += 1
-            a2_tilde[j][k] += 1
-            add_to_A()
+            a_tilde[j][(n+1)*i+k] += 1
         elif i_neg > 0 and j_neg > 0 and k_neg < 0:
             b[0][i] += 1
             b[0][j] += 1
@@ -110,9 +104,7 @@ def generate_W_mat(max3sat):
             a[i][j] += 1
             b[i][k] += 1
             b[j][k] += 1
-            a1_tilde[0][i] += 1
-            a2_tilde[j][k] += 1
-            add_to_A()
+            a_tilde[j][(n+1)*i+k] += 1
         elif i_neg < 0 and j_neg < 0 and k_neg > 0:
             a[0][i] += 1
             a[0][j] += 1
@@ -120,9 +112,7 @@ def generate_W_mat(max3sat):
             a[i][j] += 1
             b[i][k] += 1
             b[j][k] += 1
-            b1_tilde[0][i] += 1
-            b2_tilde[j][k] += 1
-            add_to_B()
+            b_tilde[j][(n+1)*i+k] += 1
         elif i_neg < 0 and j_neg > 0 and k_neg < 0:
             a[0][i] += 1
             b[0][j] += 1
@@ -130,9 +120,7 @@ def generate_W_mat(max3sat):
             b[i][j] += 1
             a[i][k] += 1
             b[j][k] += 1
-            b1_tilde[0][i] += 1
-            b2_tilde[j][k] += 1
-            add_to_B()
+            b_tilde[j][(n+1)*i+k] += 1
         elif i_neg > 0 and j_neg < 0 and k_neg < 0:
             b[0][i] += 1
             a[0][j] += 1
@@ -140,9 +128,7 @@ def generate_W_mat(max3sat):
             b[i][j] += 1
             b[i][k] += 1
             a[j][k] += 1
-            b1_tilde[0][i] += 1
-            b2_tilde[j][k] += 1
-            add_to_B()
+            b_tilde[j][(n+1)*i+k] += 1
         elif i_neg < 0 and j_neg < 0 and k_neg < 0:
             a[0][i] += 1
             a[0][j] += 1
@@ -150,11 +136,10 @@ def generate_W_mat(max3sat):
             a[i][j] += 1
             a[i][k] += 1
             a[j][k] += 1
-            a1_tilde[0][i] += 1
-            a2_tilde[j][k] += 1
-            add_to_A()
+            a_tilde[j][(n+1)*i+k] += 1
         else:
             print('error: ' + str(r))
+
 
     a = (a + np.transpose(a)) / 8
     b = (b + np.transpose(b)) / 8
